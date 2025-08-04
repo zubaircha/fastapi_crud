@@ -1,13 +1,20 @@
 from sqlalchemy.orm import Session
-from app import models
+from app import models, schemas
 
+# ✅ Get user by username (for duplicate check)
 def get_user_by_username(db: Session, username: str):
     return db.query(models.User).filter(models.User.username == username).first()
 
+# ✅ Get user by ID
 def get_user(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.id == user_id).first()
 
-def create_user(db: Session, user):
+# ✅ Get all users (optional: use this in GET /users/)
+def get_all_users(db: Session):
+    return db.query(models.User).all()
+
+# ✅ Create a new user
+def create_user(db: Session, user: schemas.UserCreate):
     fake_hashed_password = user.password + "notreallyhashed"
     db_user = models.User(
         username=user.username,
@@ -19,3 +26,21 @@ def create_user(db: Session, user):
     db.commit()
     db.refresh(db_user)
     return db_user
+
+# ✅ Update user by replacing all fields
+def update_user(db: Session, user: models.User, updated_data: schemas.UserCreate):
+    user.username = updated_data.username
+    user.email = updated_data.email
+    user.full_name = updated_data.full_name
+    user.hashed_password = updated_data.password + "notreallyhashed"
+    db.commit()
+    db.refresh(user)
+    return user
+
+# ✅ Delete a user
+def delete_user(db: Session, user: models.User):
+    db.delete(user)
+    db.commit()
+       
+def get_all_users(db: Session):
+    return db.query(models.User).all()
