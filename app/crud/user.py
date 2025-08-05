@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from app import models, schemas
+from app.auth import get_password_hash
 
 # ✅ Get user by username (for duplicate check)
 def get_user_by_username(db: Session, username: str):
@@ -15,12 +16,12 @@ def get_all_users(db: Session):
 
 # ✅ Create a new user
 def create_user(db: Session, user: schemas.UserCreate):
-    fake_hashed_password = user.password + "notreallyhashed"
+    hashed_password = get_password_hash(user.password)
     db_user = models.User(
         username=user.username,
         email=user.email,
         full_name=user.full_name,
-        hashed_password=fake_hashed_password,
+        hashed_password=hashed_password,
     )
     db.add(db_user)
     db.commit()

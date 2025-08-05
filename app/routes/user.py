@@ -2,6 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from .. import schemas, database
 from app.crud import user as crud  # ✅ This fixes it
+from app.auth import get_current_user
+from app import models
+
 
 
 router = APIRouter(
@@ -15,11 +18,20 @@ get_db = database.get_db
 # POST /users/ → create a new user
 @router.post("/", response_model=schemas.UserOut)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    
     db_user = crud.get_user_by_username(db, user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered")
     return crud.create_user(db=db, user=user)
 
+@router.get("/protected")
+def protected(current_user: models.User = Depends(get_current_user)):
+    return {
+        "message": f"Welcome {current_user.username}",
+        "email": current_user.email,
+        "id": current_user.id
+    }
+ 
 # GET /users/{user_id} → get a user by ID
 @router.get("/{user_id}", response_model=schemas.UserOut)
 def read_user(user_id: int, db: Session = Depends(get_db)):
@@ -48,6 +60,7 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
 @router.get("/", response_model=list[schemas.UserOut])
 def read_all_users(db: Session = Depends(get_db)):
     return crud.get_all_users(db)
+
 
 
 
