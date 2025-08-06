@@ -45,3 +45,4 @@ def delete_user(db: Session, user: models.User):
        
 def get_all_users(db: Session):
     return db.query(models.User).all()
+
